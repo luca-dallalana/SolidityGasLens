@@ -1,13 +1,9 @@
-import crypto from "node:crypto";
 import path from "node:path";
 import solc from "solc";
 import type { CompiledArtifact } from "./types.js";
+import { hashSource } from "./utils.js";
 
 const cache = new Map<string, CompiledArtifact | null>();
-
-function hashSource(source: string): string {
-  return crypto.createHash("sha256").update(source).digest("hex");
-}
 
 export function compileSource(
   filePath: string,

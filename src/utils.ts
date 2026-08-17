@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import net from "node:net";
 
 export function isPortInUse(port: number): Promise<boolean> {
@@ -16,4 +17,8 @@ export function isPortInUse(port: number): Promise<boolean> {
 
 export function formatGas(gas: number): string {
   return gas.toLocaleString("en-US");
+}
+
+export function hashSource(source: string): string {
+  return crypto.createHash("sha256").update(source).digest("hex");
 }
