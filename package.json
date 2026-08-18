@@ -33,12 +33,12 @@
         "gasLens.gasIncreaseThreshold": {
           "type": "number",
           "default": 5,
-          "description": "Not yet wired up; the 5% threshold is currently hardcoded in src/cache.ts."
+          "description": "Percent gas increase required to show the increase glyph on a hint."
         },
         "gasLens.gasDecreaseThreshold": {
           "type": "number",
           "default": 5,
-          "description": "Not yet wired up; the 5% threshold is currently hardcoded in src/cache.ts."
+          "description": "Percent gas decrease required to show the decrease glyph on a hint."
         },
         "gasLens.showOnlyPublic": {
           "type": "boolean",

@@ -69,7 +69,12 @@ async function handleSave(
     const address = await deployContract(anvilHandle.rpcUrl, artifact);
     const measurements = await measureGas(anvilHandle.rpcUrl, address, artifact, targetFunctions);
 
-    provider.recordMeasurement(doc.uri, hashSource(source), measurements);
+    const increaseThreshold = config.get<number>("gasIncreaseThreshold", 5);
+    const decreaseThreshold = config.get<number>("gasDecreaseThreshold", 5);
+    provider.recordMeasurement(doc.uri, hashSource(source), measurements, {
+      increase: increaseThreshold,
+      decrease: decreaseThreshold,
+    });
     statusBar.setReady();
   } catch (err) {
     provider.recordError(doc.uri, String(err));

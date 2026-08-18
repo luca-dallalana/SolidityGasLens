@@ -12,13 +12,18 @@ export class GasHintsProvider implements vscode.InlayHintsProvider {
   private emitter = new vscode.EventEmitter<void>();
   readonly onDidChangeInlayHints = this.emitter.event;
 
-  recordMeasurement(uri: vscode.Uri, newHash: string, measurements: GasMeasurement[]): void {
+  recordMeasurement(
+    uri: vscode.Uri,
+    newHash: string,
+    measurements: GasMeasurement[],
+    thresholds?: { increase?: number; decrease?: number },
+  ): void {
     const uriStr = uri.toString();
     const previousHash = this.lastHashByUri.get(uriStr) ?? newHash;
 
     const diffs = new Map<string, GasDiff>();
     for (const m of measurements) {
-      diffs.set(m.functionName, diffMeasurement(this.gasCache, previousHash, m));
+      diffs.set(m.functionName, diffMeasurement(this.gasCache, previousHash, m, thresholds));
     }
 
     this.gasCache = updateCache(this.gasCache, newHash, measurements);

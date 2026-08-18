@@ -34,6 +34,22 @@ describe("cache", () => {
     expect(diffMeasurement(cache, "hash1", measurement(30500))).toBe("unchanged");
   });
 
+  it("respects a custom increase threshold", () => {
+    const cache: GasCache = { hash1: { setValue: measurement(30000) } };
+    // 30000 -> 30500 is a ~1.67% increase: unchanged at the default 5%, but
+    // an increase once the threshold is lowered below that delta.
+    expect(diffMeasurement(cache, "hash1", measurement(30500))).toBe("unchanged");
+    expect(diffMeasurement(cache, "hash1", measurement(30500), { increase: 1 })).toBe("increase");
+  });
+
+  it("respects a custom decrease threshold", () => {
+    const cache: GasCache = { hash1: { setValue: measurement(30000) } };
+    // 30000 -> 29500 is a ~1.67% decrease: unchanged at the default 5%, but
+    // a decrease once the threshold is lowered below that delta.
+    expect(diffMeasurement(cache, "hash1", measurement(29500))).toBe("unchanged");
+    expect(diffMeasurement(cache, "hash1", measurement(29500), { decrease: 1 })).toBe("decrease");
+  });
+
   it("updateCache stores measurements keyed by file hash and function name", () => {
     const cache: GasCache = {};
     const updated = updateCache(cache, "hash1", [measurement(30000)]);

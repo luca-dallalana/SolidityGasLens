@@ -2,19 +2,21 @@ import type { GasCache, GasMeasurement } from "./types.js";
 
 export type GasDiff = "increase" | "decrease" | "unchanged" | "new";
 
-const THRESHOLD_PERCENT = 5;
-
 export function diffMeasurement(
   cache: GasCache,
   fileHash: string,
   measurement: GasMeasurement,
+  thresholds: { increase?: number; decrease?: number } = {},
 ): GasDiff {
   const previous = cache[fileHash]?.[measurement.functionName];
   if (!previous) return "new";
 
+  const increaseThreshold = thresholds.increase ?? 5;
+  const decreaseThreshold = thresholds.decrease ?? 5;
+
   const deltaPercent = ((measurement.gas - previous.gas) / previous.gas) * 100;
-  if (deltaPercent > THRESHOLD_PERCENT) return "increase";
-  if (deltaPercent < -THRESHOLD_PERCENT) return "decrease";
+  if (deltaPercent > increaseThreshold) return "increase";
+  if (deltaPercent < -decreaseThreshold) return "decrease";
   return "unchanged";
 }
 
