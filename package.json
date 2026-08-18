@@ -28,7 +28,7 @@
         "gasLens.foundryMode": {
           "type": "boolean",
           "default": false,
-          "description": "Not yet implemented."
+          "description": "Extract real argument values from a matching Foundry *.t.sol test file instead of zero-value placeholders, where possible."
         },
         "gasLens.gasIncreaseThreshold": {
           "type": "number",
