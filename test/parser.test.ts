@@ -11,6 +11,7 @@ describe("parseFunctions", () => {
     const sigs = parseFunctions(fixture);
     const names = sigs.map((s) => s.name).sort();
     expect(names).toEqual([
+      "deposit",
       "getValue",
       "hashOf",
       "setValue",

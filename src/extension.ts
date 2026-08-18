@@ -1,6 +1,8 @@
+import path from "node:path";
 import * as vscode from "vscode";
 import { type AnvilHandle, startAnvil } from "./anvilManager.js";
 import { compileSource } from "./compiler.js";
+import { extractTestInputs } from "./foundryMode.js";
 import { GasHintsProvider } from "./hintsProvider.js";
 import { deployContract, measureGas } from "./measurer.js";
 import { parseFunctions } from "./parser.js";
@@ -66,8 +68,27 @@ async function handleSave(
     const showOnlyPublic = config.get<boolean>("showOnlyPublic", false);
     const targetFunctions = showOnlyPublic ? functions.filter((f) => f.isPublic) : functions;
 
+    let inputOverrides: Record<string, unknown[]> | undefined;
+    if (config.get<boolean>("foundryMode", false)) {
+      const baseName = path.basename(filePath, ".sol");
+      const [testFile] = await vscode.workspace.findFiles(
+        `**/${baseName}.t.sol`,
+        "**/node_modules/**",
+        1,
+      );
+      if (testFile) {
+        inputOverrides = extractTestInputs(testFile.fsPath, targetFunctions);
+      }
+    }
+
     const address = await deployContract(anvilHandle.rpcUrl, artifact);
-    const measurements = await measureGas(anvilHandle.rpcUrl, address, artifact, targetFunctions);
+    const measurements = await measureGas(
+      anvilHandle.rpcUrl,
+      address,
+      artifact,
+      targetFunctions,
+      inputOverrides,
+    );
 
     const increaseThreshold = config.get<number>("gasIncreaseThreshold", 5);
     const decreaseThreshold = config.get<number>("gasDecreaseThreshold", 5);

@@ -28,6 +28,11 @@ contract Sample {
         return h;
     }
 
+    function deposit(uint256 amount) external {
+        require(amount > 0, "amount must be positive");
+        value += amount;
+    }
+
     function _internalHelper() internal pure returns (uint256) {
         return 42;
     }

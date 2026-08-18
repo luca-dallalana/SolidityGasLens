@@ -37,35 +37,54 @@ export async function deployContract(
   return contract.getAddress();
 }
 
+async function tryMeasure(
+  provider: InstanceType<typeof ethers.JsonRpcProvider>,
+  iface: InstanceType<typeof ethers.Interface>,
+  contractAddress: string,
+  fnName: string,
+  args: unknown[],
+): Promise<{ gas: bigint; data: string } | undefined> {
+  try {
+    const data = iface.encodeFunctionData(fnName, args);
+    const gas = await provider.estimateGas({ to: contractAddress, data });
+    return { gas, data };
+  } catch {
+    return undefined;
+  }
+}
+
 export async function measureGas(
   rpcUrl: string,
   contractAddress: string,
   artifact: CompiledArtifact,
   functions: FunctionSignature[],
+  inputOverrides?: Record<string, unknown[]>,
 ): Promise<GasMeasurement[]> {
   const provider = new ethers.JsonRpcProvider(rpcUrl);
   const iface = new ethers.Interface(artifact.abi as any);
   const measurements: GasMeasurement[] = [];
 
   for (const fn of functions) {
-    const args = fn.params.map((p) => zeroValueFor(p.type));
-    let data: string;
-    try {
-      data = iface.encodeFunctionData(fn.name, args);
-    } catch {
-      // Function not present in the ABI (e.g. overload mismatch) - skip.
-      continue;
-    }
+    const zeroValueArgs = fn.params.map((p) => zeroValueFor(p.type));
+    const override = inputOverrides?.[fn.name];
+    const candidates =
+      override && override.length === fn.params.length
+        ? [override, zeroValueArgs]
+        : [zeroValueArgs];
 
-    let gas: bigint;
-    try {
-      gas = await provider.estimateGas({ to: contractAddress, data });
-    } catch {
-      // Reverts on zero-value input are expected and skipped silently.
-      continue;
+    let result: { gas: bigint; data: string } | undefined;
+    let args: unknown[] = zeroValueArgs;
+    for (const candidate of candidates) {
+      result = await tryMeasure(provider, iface, contractAddress, fn.name, candidate);
+      if (result) {
+        args = candidate;
+        break;
+      }
     }
+    // Function not in the ABI, or reverts under every candidate input - skip.
+    if (!result) continue;
 
-    const baseGas = intrinsicGas(data);
+    const baseGas = intrinsicGas(result.data);
     const inputsUsed: Record<string, string> = {};
     fn.params.forEach((p, i) => {
       inputsUsed[p.name || `arg${i}`] = String(args[i]);
@@ -73,9 +92,9 @@ export async function measureGas(
 
     measurements.push({
       functionName: fn.name,
-      gas: Number(gas),
+      gas: Number(result.gas),
       baseGas,
-      executionGas: Number(gas) - baseGas,
+      executionGas: Number(result.gas) - baseGas,
       inputsUsed,
       timestamp: Date.now(),
     });
