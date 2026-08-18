@@ -1,5 +1,8 @@
 {
   "name": "solidity-gas-lens",
+  "displayName": "Solidity Gas Lens",
+  "description": "Live gas-cost inlay hints for Solidity functions, measured against a local Anvil node.",
+  "publisher": "local-dev",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -8,7 +11,7 @@
     "vscode": "^1.85.0"
   },
   "activationEvents": [
-    "workspaceContains:**/*.sol"
+    "onStartupFinished"
   ],
   "contributes": {
     "configuration": {
