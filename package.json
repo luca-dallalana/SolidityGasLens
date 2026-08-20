@@ -5,6 +5,10 @@
   "publisher": "local-dev",
   "version": "0.0.1",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luca-dallalana/SolidityGasLens"
+  },
   "type": "module",
   "main": "./dist/extension.js",
   "engines": {
@@ -48,7 +52,11 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && echo '{\"type\":\"commonjs\"}' > dist/package.json",
+    "compile": "esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --external:solc --sourcemap --outfile=dist/extension.js && echo '{\"type\":\"commonjs\"}' > dist/package.json",
+    "build": "npm run compile",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "compile:package": "esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --external:solc --minify --outfile=dist/extension.js && echo '{\"type\":\"commonjs\"}' > dist/package.json",
+    "vscode:prepublish": "npm run typecheck && npm run compile:package",
     "test": "vitest run"
   },
   "dependencies": {
@@ -59,6 +67,8 @@
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   }
