@@ -3,3 +3,4 @@ dist/
 *.log
 .vscode/
 *.vsix
+.DS_Store
