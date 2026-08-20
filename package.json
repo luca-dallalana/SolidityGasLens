@@ -52,10 +52,10 @@
     }
   },
   "scripts": {
-    "compile": "esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --external:solc --sourcemap --outfile=dist/extension.js && echo '{\"type\":\"commonjs\"}' > dist/package.json",
+    "compile": "esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --sourcemap --outfile=dist/extension.js && echo '{\"type\":\"commonjs\"}' > dist/package.json",
     "build": "npm run compile",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "compile:package": "esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --external:solc --minify --outfile=dist/extension.js && echo '{\"type\":\"commonjs\"}' > dist/package.json",
+    "compile:package": "esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --minify --outfile=dist/extension.js && echo '{\"type\":\"commonjs\"}' > dist/package.json",
     "vscode:prepublish": "npm run typecheck && npm run compile:package",
     "test": "vitest run"
   },
