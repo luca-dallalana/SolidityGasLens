@@ -89,7 +89,7 @@ async function runPipeline(
     const targetFunctions = showOnlyPublic ? functions.filter((f) => f.isPublic) : functions;
 
     let inputOverrides: Record<string, unknown[]> | undefined;
-    if (config.get<boolean>("foundryMode", false)) {
+    if (config.get<boolean>("foundryMode", true)) {
       const baseName = path.basename(filePath, ".sol");
       const [testFile] = await vscode.workspace.findFiles(
         `**/${baseName}.t.sol`,
