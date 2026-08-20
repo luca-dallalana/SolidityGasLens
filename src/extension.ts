@@ -28,14 +28,34 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   const selector: vscode.DocumentSelector = { scheme: "file", pattern: "**/*.sol" };
 
+  const maybeRunForActiveEditor = (editor: vscode.TextEditor | undefined) => {
+    if (!editor) return;
+    const doc = editor.document;
+    if (!doc.fileName.endsWith(".sol")) return;
+    // A dirty buffer disagrees with what's on disk, and parseFunctions
+    // always reads from disk - measuring here would parse stale signatures
+    // against the in-memory bytecode. Let the save path handle it instead.
+    if (doc.isDirty) return;
+    // Only measure the active editor's document if its current content
+    // hasn't already been measured this session - avoids re-running the
+    // pipeline every time the user switches back to an already-open tab.
+    if (provider.hasMeasurementForHash(hashSource(doc.getText()))) return;
+    void runPipeline(doc, provider, statusBar);
+  };
+
   context.subscriptions.push(
     vscode.languages.registerInlayHintsProvider(selector, provider),
     statusBar,
-    vscode.workspace.onDidSaveTextDocument((doc) => handleSave(doc, provider, statusBar)),
+    vscode.workspace.onDidSaveTextDocument((doc) => runPipeline(doc, provider, statusBar)),
+    vscode.window.onDidChangeActiveTextEditor(maybeRunForActiveEditor),
   );
+
+  // The editor active at activation time never fires onDidChangeActiveTextEditor
+  // itself (that event only fires on a subsequent change), so check it directly.
+  maybeRunForActiveEditor(vscode.window.activeTextEditor);
 }
 
-async function handleSave(
+async function runPipeline(
   doc: vscode.TextDocument,
   provider: GasHintsProvider,
   statusBar: GasLensStatusBar,

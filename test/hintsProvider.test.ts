@@ -117,6 +117,16 @@ describe("GasHintsProvider", () => {
     expect(hints[0].label).toContain("unexpected token");
   });
 
+  it("hasMeasurementForHash reflects whether a hash has been recorded", () => {
+    const doc = makeDoc("file:///Sample.sol", "contract A {}");
+    const hash = hashSource("contract A {}");
+    expect(provider.hasMeasurementForHash(hash)).toBe(false);
+
+    provider.recordMeasurement(doc.uri, hash, [measurement(20000)]);
+    expect(provider.hasMeasurementForHash(hash)).toBe(true);
+    expect(provider.hasMeasurementForHash(hashSource("contract B {}"))).toBe(false);
+  });
+
   it("fires onDidChangeInlayHints on both recordMeasurement and recordError", () => {
     const doc = makeDoc("file:///Sample.sol", "contract A {}");
     const listener = vi.fn();

@@ -12,6 +12,10 @@ export class GasHintsProvider implements vscode.InlayHintsProvider {
   private emitter = new vscode.EventEmitter<void>();
   readonly onDidChangeInlayHints = this.emitter.event;
 
+  hasMeasurementForHash(hash: string): boolean {
+    return Boolean(this.gasCache[hash]);
+  }
+
   recordMeasurement(
     uri: vscode.Uri,
     newHash: string,
